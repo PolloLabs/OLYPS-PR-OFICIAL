@@ -337,8 +337,8 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             <span id="pos-current-date">{formatDateTime(currentDateTime)}</span>
           </div>
 
-          {/* Controle de Bip Sonoro */}
-          <button
+          <div style={{ display: 'none' }}>
+          <button 
             id="btn-pos-sound-toggle"
             type="button"
             onClick={handleToggleSound}
