@@ -478,11 +478,19 @@ export function usePOS(
           description: `Fatura ${generatedInvoiceNumber} - Total: R$ ${totals.totalToPay.toFixed(2)}`,
         });
 
-        // Só limpa o carrinho APÓS a impressão
+        // A impressão agora é tratada automaticamente pelo componente POSPrintReceipt
+        // via prop autoPrint quando completedSaleReceipt é definido
+        // Só limpa o carrinho após garantir que a impressão foi disparada
         if (autoPrint) {
           setTimeout(() => {
             try {
-              window.print();
+              // O window.print() será chamado pelo componente via useEffect
+              // Mantemos este fallback apenas para segurança
+              const printElement = document.getElementById('pos-print-receipt-container');
+              if (!printElement) {
+                console.warn('Elemento de impressão não encontrado, usando fallback');
+                window.print();
+              }
             } catch (printErr) {
               console.warn('Falha ao abrir diálogo de impressão:', printErr);
             } finally {
@@ -490,7 +498,7 @@ export function usePOS(
               clearCart();
               loadRecentTransactions();
             }
-          }, 500);
+          }, 600);
         } else {
           clearCart();
           loadRecentTransactions();

@@ -873,6 +873,11 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             console.warn('Erro ao chamar window.print():', err);
           }
         }}
+        autoPrint={!!completedSaleReceipt}
+        onPrintComplete={() => {
+          // Callback opcional após impressão
+          console.log('Impressão concluída');
+        }}
       />
     </div>
   );
