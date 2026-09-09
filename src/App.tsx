@@ -924,7 +924,8 @@ export default function App() {
 
       {/* 2. Main Content Canvas */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
-        {/* Top Header with Breadcrumbs & Context Control */}
+        {/* Top Header with Breadcrumbs & Context Control - Hidden on PDV view */}
+        {!isPOSCreateView && (
         <AppHeader
           breadcrumb={activeNavContext.breadcrumb}
           isCollapsed={isCollapsed}
@@ -941,6 +942,7 @@ export default function App() {
           onNavigate={handleNavigateByPath}
           onShowNotification={showNotification}
         />
+        )}
 
         {/* Dynamic Main Content Container */}
         <main className={`flex-1 w-full mx-auto ${isPOSCreateView ? 'p-0 max-w-none' : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'}`}>
