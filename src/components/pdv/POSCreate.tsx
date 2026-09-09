@@ -14,15 +14,12 @@ import {
   DollarSign,
   Plus,
   Printer,
-  Volume2,
-  VolumeX,
   AlertCircle,
   Menu,
   Bell,
 } from 'lucide-react';
 import { usePOS } from '../../hooks/pdv/usePOS.js';
 import { usePrintReceipt } from '../../hooks/pdv/usePrintReceipt.js';
-import { isSoundEnabled, setSoundEnabled } from '../../utils/sounds.js';
 import { POSItemsTable } from './POSItemsTable.js';
 import { POSProductGrid } from './POSProductGrid.js';
 import { POSPaymentBar } from './POSPaymentBar.js';
@@ -166,41 +163,6 @@ export const POSCreate: React.FC<POSCreateProps> = ({
     clearError,
   } = usePOS(companyId, onShowNotification);
 
-  // Estado do controle de som do PDV sincronizado com configurações da empresa
-  const [soundOn, setSoundOn] = useState<boolean>(() => isSoundEnabled());
-
-  useEffect(() => {
-    const loadSoundConfig = async () => {
-      try {
-        const response = await fetch(`/api/companies/${companyId}/invoice-settings`);
-        if (response.ok) {
-          const data = await response.json();
-          const isEnabled = data.soundEnabled !== false;
-          setSoundOn(isEnabled);
-          setSoundEnabled(isEnabled);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar config de som:', err);
-      }
-    };
-    loadSoundConfig();
-  }, [companyId]);
-
-  const handleToggleSound = async () => {
-    const next = !soundOn;
-    setSoundOn(next);
-    setSoundEnabled(next);
-    try {
-      await fetch(`/api/companies/${companyId}/invoice-settings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ soundEnabled: next }),
-      });
-    } catch {
-      // ignore
-    }
-  };
-
   // Data e hora em tempo real (atualizado a cada segundo)
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
@@ -312,9 +274,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
           >
             <Menu className="w-5 h-5" />
           </button>
-      <div style={{ display: 'none' }}>
-  <Breadcrumb items={['OLYPS PRO', 'Vender', 'PDV']} />
-</div>
+          <div style={{ display: 'none' }}>
+            <Breadcrumb items={['OLYPS PRO', 'Vender', 'PDV']} />
+          </div>
           {/* Localização dropdown */}
           <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs">
             <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
@@ -336,26 +298,6 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
             <span id="pos-current-date">{formatDateTime(currentDateTime)}</span>
           </div>
-
-          <div style={{ display: 'none' }}>
-          <button 
-            id="btn-pos-sound-toggle"
-            type="button"
-            onClick={handleToggleSound}
-            title={soundOn ? 'Desativar bip sonoro' : 'Ativar bip sonoro'}
-            className={`hidden sm:flex items-center gap-1.5 border rounded px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
-              soundOn
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100'
-                : 'bg-slate-50 border-slate-300 text-slate-500 hover:bg-slate-100'
-            }`}
-          >
-            {soundOn ? (
-              <Volume2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-            ) : (
-              <VolumeX className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-            )}
-            <span>{soundOn ? 'Som Ativado' : 'Som Desativado'}</span>
-          </button>
         </div>
 
         {/* Lado Direito: Ações, Alertas e Operações */}
