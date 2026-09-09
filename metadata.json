@@ -1,0 +1,8 @@
+{
+  "name": "OLYPS PRO",
+  "description": "Plataforma SaaS multiempresa para gestão empresarial integrada, controle de estoque, vendas, PDV, reparos e financeiro com isolamento multi-tenant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
