@@ -228,7 +228,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
   // Hook de impressão térmica de cupom (80mm)
   const {
     isReceiptModalOpen,
+    isReadyToPrint,
     handlePrint: triggerPrintReceipt,
+    triggerPrint,
     openReceiptModal,
     closeReceiptModal,
   } = usePrintReceipt({
@@ -236,6 +238,13 @@ export const POSCreate: React.FC<POSCreateProps> = ({
     onNotification: onShowNotification,
     completedSaleReceipt,
   });
+
+  // Disparar impressão automaticamente quando estiver pronto
+  useEffect(() => {
+    if (isReceiptModalOpen && isReadyToPrint) {
+      triggerPrint();
+    }
+  }, [isReceiptModalOpen, isReadyToPrint, triggerPrint]);
 
   // Estado de novo cliente rápido
   const [newCustName, setNewCustName] = useState<string>('');
@@ -290,7 +299,12 @@ export const POSCreate: React.FC<POSCreateProps> = ({
     } else if (method === 'cash') {
       setIsCashPaymentModalOpen(true);
     } else {
-      handleCompleteSale(method);
+      // Para outros métodos, salva a venda e dispara impressão via hook
+      handleCompleteSale(method, undefined, undefined, false).then((success) => {
+        if (success) {
+          triggerPrintReceipt();
+        }
+      });
     }
   };
 
@@ -606,7 +620,8 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             boleto: 'other',
           };
           const method = methodMap[forma] || 'cash';
-          return await handleCompleteSale(method, data?.valorPago, data?.customNote, true);
+          // Usar autoPrint=false pois a impressão será tratada pelo hook usePrintReceipt
+          return await handleCompleteSale(method, data?.valorPago, data?.customNote, false);
         }}
         onCancelSale={() => setIsCancelConfirmOpen(true)}
         onOpenRecentTransactions={() => setIsRecentTransactionsOpen(true)}

@@ -387,7 +387,7 @@ export function usePOS(
       paymentMethod: POSPaymentMethod,
       amountPaid?: number,
       customNote?: string,
-      autoPrint: boolean = true
+      autoPrint: boolean = false  // Alterado para false - impressão é tratada pelo hook usePrintReceipt
     ) => {
       if (items.length === 0) {
         const msg = 'Carrinho vazio. Adicione pelo menos um produto para finalizar a venda.';
@@ -482,7 +482,9 @@ export function usePOS(
         if (autoPrint) {
           setTimeout(() => {
             try {
-              window.print();
+              // A impressão agora é tratada pelo hook usePrintReceipt e seu useEffect
+              // que aguarda a renderização completa do componente POSPrintReceipt
+              // Não chamamos window.print() diretamente aqui para evitar impressão em branco
             } catch (printErr) {
               console.warn('Falha ao abrir diálogo de impressão:', printErr);
             } finally {
