@@ -312,8 +312,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Breadcrumb items={['OLYPS PRO', 'Vender', 'PDV']} />
-
+      <div style={{ display: 'none' }}>
+  <Breadcrumb items={['OLYPS PRO', 'Vender', 'PDV']} />
+</div>
           {/* Localização dropdown */}
           <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs">
             <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
