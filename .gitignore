@@ -1,8 +1,48 @@
-node_modules/
-build/
+```
+# Styles
+*.css.map
+
+# Build artifacts
 dist/
-coverage/
-.DS_Store
+build/
+*.min.css
+
+# Dependencies
+node_modules/
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
 *.log
-.env*
-!.env.example
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.db
+*.db-journal
+.hypothesis/
+.DS_Store
+Thumbs.db
+```

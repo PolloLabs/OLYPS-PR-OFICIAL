@@ -1,0 +1,122 @@
+/* src/styles/pdv-clean.css — Limpeza visual do PDV */
+
+/* =========================================================
+   CONTAINER PRINCIPAL
+   ========================================================= */
+
+.pdv-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+
+.pdv-container *,
+.pdv-container *::before,
+.pdv-container *::after {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   BREADCRUMB DUPLICADO
+   ========================================================= */
+
+.pdv-container .breadcrumb-secondary {
+  display: none !important;
+}
+
+/* =========================================================
+   BOTÃO DE SOM
+   Usa somente atributos/classes que podem ser identificados
+   diretamente no elemento.
+   ========================================================= */
+
+.pdv-container .sound-toggle,
+.pdv-container [data-testid="sound-button"] {
+  display: none !important;
+}
+
+/* =========================================================
+   INFORMAÇÕES DE PERFIL / EMPRESA
+   Somente classes explicitamente identificadas.
+   ========================================================= */
+
+.pdv-container .profile-info,
+.pdv-container .company-selector,
+.pdv-container .datetime-display,
+.pdv-container .franchise-selector,
+.pdv-container [data-testid="franchise-select"] {
+  display: none !important;
+}
+
+/* =========================================================
+   MENU LATERAL
+   Somente elementos com classes claramente destinadas
+   à navegação lateral.
+   ========================================================= */
+
+.pdv-container .sidebar,
+.pdv-container nav.sidebar {
+  display: none !important;
+}
+
+/* =========================================================
+   CONTEÚDO PRINCIPAL
+   ========================================================= */
+
+.pdv-container .main-content {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* =========================================================
+   FILTROS
+   Não reposicionar automaticamente.
+   O posicionamento deve continuar sendo controlado
+   pelo layout original do React.
+   ========================================================= */
+
+/* =========================================================
+   BOTÃO FINALIZAR
+   Só aplica se a classe realmente existir no componente.
+   ========================================================= */
+
+.pdv-container .btn-finalize {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  padding: 16px 32px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+}
+
+/* =========================================================
+   BOTÃO CANCELAR
+   Só aplica se a classe realmente existir no componente.
+   ========================================================= */
+
+.pdv-container .btn-cancel {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+}
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .pdv-container {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .pdv-container .main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
