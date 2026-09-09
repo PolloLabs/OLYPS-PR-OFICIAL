@@ -1,9 +1,9 @@
 {
-  "name": "olyps-pr-teste",
+  "name": "olyps-teste-final",
   "version": "1.0.0",
   "author": "Marcos Kules <kulesmarcos@gmail.com>",
-  "description": "Teste de deploy minimo para OLYPS PR - Autor Unico",
+  "description": "Teste de deploy minimo",
   "scripts": {
-    "start": "echo 'Projeto estatico, sem build necessario'"
+    "start": "echo 'Projeto estatico'"
   }
 }
