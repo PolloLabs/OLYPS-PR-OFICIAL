@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { PDVItem } from '../../types/pdv.types.js';
 
 export interface POSPrintReceiptProps {
@@ -22,6 +22,8 @@ export interface POSPrintReceiptProps {
   onClose?: () => void;
   onPrint?: () => void;
   completedSaleReceipt?: any;
+  autoPrint?: boolean;
+  onPrintComplete?: () => void;
 }
 
 export const POSPrintReceipt: React.FC<POSPrintReceiptProps> = ({
@@ -45,9 +47,11 @@ export const POSPrintReceipt: React.FC<POSPrintReceiptProps> = ({
   onClose,
   onPrint,
   completedSaleReceipt,
+  autoPrint = false,
+  onPrintComplete,
 }) => {
   const dataVenda = new Date().toLocaleString('pt-BR');
-
+  
   // Valores normalizados
   const effectiveItems = (completedSaleReceipt?.items?.length ? completedSaleReceipt.items : items) || [];
   const effectiveSubtotal = completedSaleReceipt ? completedSaleReceipt.subtotal : subtotal;
@@ -58,6 +62,26 @@ export const POSPrintReceipt: React.FC<POSPrintReceiptProps> = ({
   const effectiveTotal = completedSaleReceipt ? (completedSaleReceipt.totalToPay ?? completedSaleReceipt.total ?? 0) : (total || totalToPay || 0);
   const effectiveCliente = cliente || customer?.name || (typeof customer === 'string' ? customer : undefined);
   const effectivePayment = formaPagamento || paymentMethod || completedSaleReceipt?.paymentMethod || 'Dinheiro';
+
+  // Auto-impressão quando o componente é montado e autoPrint está habilitado
+  useEffect(() => {
+    if (autoPrint && effectiveItems.length > 0) {
+      // Aguardar renderização completa do DOM
+      const timer = setTimeout(() => {
+        const printElement = document.getElementById('pos-print-receipt-container');
+        if (printElement) {
+          try {
+            window.print();
+            onPrintComplete?.();
+          } catch (err) {
+            console.warn('Erro ao chamar window.print():', err);
+          }
+        }
+      }, 400); // 400ms para garantir renderização
+      
+      return () => clearTimeout(timer);
+    }
+  }, [autoPrint, effectiveItems.length, onPrintComplete]);
 
   return (
     <>
@@ -197,10 +221,18 @@ export const POSPrintReceipt: React.FC<POSPrintReceiptProps> = ({
             }
             .print-only {
               display: block !important;
-              position: absolute !important;
+              position: fixed !important;
               left: 0 !important;
               top: 0 !important;
               width: 80mm !important;
+              background: white !important;
+              color: black !important;
+              z-index: 9999 !important;
+            }
+            /* Forçar impressão de cores de fundo */
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
           }
         `}</style>
