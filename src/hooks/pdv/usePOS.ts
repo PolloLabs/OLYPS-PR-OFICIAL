@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { api } from '../../lib/api.js';
+import { printSaleReceipt } from '../../lib/printSale.js';
 import type {
   POSProduct,
   POSItem,
@@ -363,9 +364,9 @@ export function usePOS(
     [items, onNotification]
   );
 
-  // Disparo de impressão de cupom térmico 80mm
+  // Disparo de impressão de cupom térmico 80mm usando utilitário printSaleReceipt
   const handlePrint = useCallback(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !completedSaleReceipt) {
       setErrorMessage('Adicione produtos antes de imprimir');
       playErrorSound();
       return false;
@@ -373,13 +374,40 @@ export function usePOS(
 
     try {
       playSuccessSound();
-      window.print();
+      
+      // Se houver uma venda finalizada, usar os dados dela
+      if (completedSaleReceipt) {
+        printSaleReceipt({
+          numero: completedSaleReceipt.invoiceNumber || 'N/A',
+          data: completedSaleReceipt.date || new Date().toISOString(),
+          cliente: completedSaleReceipt.customer?.name || 'Consumidor',
+          itens: completedSaleReceipt.items.map(i => ({
+            descricao: i.productName || i.nome || 'Item',
+            quantidade: i.quantity || i.quantidade || 1,
+            preco: i.unitPrice || i.precoUnitario || 0
+          })),
+          subtotal: completedSaleReceipt.subtotal,
+          desconto: completedSaleReceipt.discountValue || 0,
+          total: completedSaleReceipt.totalToPay,
+          pagamentos: [{
+            forma: completedSaleReceipt.paymentMethod || 'Dinheiro',
+            valor: completedSaleReceipt.totalToPay
+          }],
+          empresa: {
+            nome: 'OLYPS PRO',
+            documento: ''
+          }
+        });
+      } else {
+        // Fallback para carrinho atual (antes de finalizar)
+        window.print();
+      }
       return true;
     } catch (error) {
       console.warn('Erro ao acionar impressora:', error);
       return false;
     }
-  }, [items]);
+  }, [items, completedSaleReceipt]);
 
   // Finalizar venda no PDV com salvamento seguro e disparo automático de impressão
   const handleCompleteSale = useCallback(
