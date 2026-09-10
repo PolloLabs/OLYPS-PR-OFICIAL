@@ -92,26 +92,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex items-center space-x-2 sm:space-x-3">
         
 
-        {/* Role Simulator Dropdown (Demonstrates RBAC context changes dynamically) */}
-        <div className="hidden lg:flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1">
-          <Sliders className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span className="text-[11px] text-slate-500">Perfil:</span>
-          <select
-            id="header-role-switcher-select"
-            value={userRole}
-            onChange={(e) => onChangeUserRole(e.target.value as CompanyRole)}
-            className="text-xs font-semibold text-slate-800 bg-transparent focus:outline-none cursor-pointer capitalize"
-            title="Simular Papel RBAC"
-          >
-            {roles.map((r) => (
-              <option key={r.key} value={r.key}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-
+       
         {/* Central de Notificações */}
         <NotificationBellDropdown
           onNavigate={onNavigate}
