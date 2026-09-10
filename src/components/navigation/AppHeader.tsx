@@ -55,35 +55,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
   return (
     <header className="h-16 border-b border-slate-200 bg-white sticky top-0 z-20 flex items-center justify-between px-4 sm:px-6">
-      {/* Left Area: Hamburger toggle & Breadcrumbs */}
-      <div className="flex items-center space-x-3 min-w-0">
-        <button
-          id="header-mobile-toggle-btn"
-          type="button"
-          onClick={onToggleSidebar}
-          className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-          aria-label="Alternar menu lateral"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        
-            <>
-              <span className="font-medium text-slate-500">{breadcrumb.section}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-            </>
-          )}
-          <span className="font-semibold text-slate-900">{breadcrumb.main}</span>
-          {breadcrumb.sub && (
-            <>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-              <span className="font-bold text-slate-900 px-1.5 py-0.5 bg-slate-100 rounded text-[11px]">
-                {breadcrumb.sub}
-              </span>
-            </>
-          )}
-        </nav>
-      </div>
-
+      
       {/* Right Area: Tenant selector, RBAC simulator, Notifications & Quick actions */}
       <div className="flex items-center space-x-2 sm:space-x-3">
         
