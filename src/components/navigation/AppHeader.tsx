@@ -90,23 +90,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
       {/* Right Area: Tenant selector, RBAC simulator, Notifications & Quick actions */}
       <div className="flex items-center space-x-2 sm:space-x-3">
-        {/* Active Company Selector */}
-        <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1">
-          <Building2 className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <select
-            id="header-company-switcher-select"
-            value={activeCompanyName}
-            onChange={(e) => onChangeCompany(e.target.value)}
-            className="text-xs font-semibold text-slate-800 bg-transparent focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[180px] truncate"
-            title="Selecionar Empresa Ativa"
-          >
-            {availableCompanies.map((comp) => (
-              <option key={comp} value={comp}>
-                {comp}
-              </option>
-            ))}
-          </select>
-        </div>
+        
 
         {/* Role Simulator Dropdown (Demonstrates RBAC context changes dynamically) */}
         <div className="hidden lg:flex items-center space-x-1.5 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1">
