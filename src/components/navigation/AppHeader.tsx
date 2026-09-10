@@ -127,22 +127,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </select>
         </div>
 
-        {/* Super Admin Global Switcher */}
-        <button
-          id="header-superadmin-toggle-btn"
-          type="button"
-          onClick={onTogglePlatformAdmin}
-          className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border transition-all ${
-            isPlatformAdmin
-              ? 'bg-purple-50 border-purple-300 text-purple-800 shadow-xs'
-              : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
-          }`}
-          title="Alternar permissão de Super Admin Global"
-        >
-          <ShieldCheck className={`w-3.5 h-3.5 ${isPlatformAdmin ? 'text-purple-600' : 'text-slate-400'}`} />
-          <span className="hidden md:inline">Super Admin:</span>
-          <span>{isPlatformAdmin ? 'Ativo' : 'Inativo'}</span>
-        </button>
 
         {/* Central de Notificações */}
         <NotificationBellDropdown
