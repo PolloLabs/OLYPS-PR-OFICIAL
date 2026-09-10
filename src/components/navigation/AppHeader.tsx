@@ -2,10 +2,10 @@ import React from 'react';
 import {
   Menu,
   ChevronRight,
-  Building2,
+
   ShieldCheck,
   RefreshCw,
-  Sliders,
+
   CheckCircle,
 } from 'lucide-react';
 import { NotificationBellDropdown } from '../notifications/index.js';
