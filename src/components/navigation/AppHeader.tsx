@@ -66,11 +66,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         >
           <Menu className="w-5 h-5" />
         </button>
-
-        <nav aria-label="Navegação estrutural" className="hidden sm:flex items-center space-x-1.5 text-xs text-slate-500">
-          <span className="font-medium text-slate-400">OLYPS PRO</span>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-          {breadcrumb.section && (
+        
             <>
               <span className="font-medium text-slate-500">{breadcrumb.section}</span>
               <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
