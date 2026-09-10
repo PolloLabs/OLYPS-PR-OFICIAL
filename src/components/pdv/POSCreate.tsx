@@ -297,8 +297,8 @@ export const POSCreate: React.FC<POSCreateProps> = ({
           <div className="hidden lg:flex items-center gap-1.5 bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-600 font-medium">
             <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
             <span id="pos-current-date">{formatDateTime(currentDateTime)}</span>
+          </div>   
           </div>
-
         {/* Lado Direito: Ações, Alertas e Operações */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Bell Alertas */}
