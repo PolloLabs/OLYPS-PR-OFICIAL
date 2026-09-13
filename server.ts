@@ -4473,11 +4473,25 @@ async function startServer() {
   // ============================================
   // POS ENDPOINTS (Ponto de Venda)
   // ============================================
-  app.get('/api/companies/:companyId/pos', requireAuth, requireCompanyContext, async (req, res) => {
+  app.get(['/api/companies/:companyId/pos', '/api/companies/:companyId/pdv'], async (req, res) => {
     const { companyId } = req.params;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
     try {
       const records = await POSService.getPOSRecords(companyId);
-      res.status(200).json({ success: true, data: records });
+      const mapped = records.map((rec) => ({
+        ...rec,
+        dataVenda: rec.createdAt || rec.sellDate,
+        cliente: rec.customerName,
+        total: rec.totalAmount,
+        formaPagamento: rec.paymentMethod,
+      }));
+      const result = limit ? mapped.slice(0, limit) : mapped;
+      // Return directly as array or data based on format, user fetch expects json(data) where data is array
+      if (req.path.includes('/pdv')) {
+        res.status(200).json(result);
+      } else {
+        res.status(200).json({ success: true, data: result });
+      }
     } catch (err: any) {
       res.status(500).json({ success: false, error: { message: err.message || 'Erro ao buscar registros de POS.' } });
     }
