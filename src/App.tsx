@@ -39,6 +39,8 @@ import { SellCreate } from './components/sell/SellCreate.js';
 import { DraftCreate } from './components/sell/DraftCreate.js';
 import { POSList } from './components/pdv/POSList.js';
 import { POSCreate } from './components/pdv/POSCreate.js';
+import { StockAdjustmentsListView } from './components/stock/StockAdjustmentsListView.js';
+import { StockAdjustmentCreateView } from './components/stock/StockAdjustmentCreateView.js';
 import { InvoiceSettings } from './components/settings/InvoiceSettings.js';
 import { PricingPlans } from './components/public/PricingPlans.js';
 import { ErrorBoundary } from './components/ui/ErrorBoundary.js';
@@ -667,7 +669,12 @@ export default function App() {
   const isSuperAdminCouponsView =
     (activeItemId === 'nav-super-admin' && activeSubItemId === 'sub-sa-coupons') ||
     activeNavContext.subItem?.path === '/superadmin/cupons' ||
-    activeNavContext.item?.path === '/superadmin/cupons';
+    activeNavContext.item?.path === '/superadmin/cupons' ||
+    (activeItemId === 'nav-sales' && activeSubItemId === 'sub-sales-discounts') ||
+    activeNavContext.subItem?.path === '/vendas/desconto' ||
+    activeNavContext.item?.path === '/vendas/desconto' ||
+    activeNavContext.subItem?.path === '/vendas/desconto/adicionar' ||
+    activeNavContext.item?.path === '/vendas/desconto/adicionar';
 
   const isSuperAdminCommunicatorView =
     (activeItemId === 'nav-super-admin' && activeSubItemId === 'sub-sa-communicator') ||
@@ -845,6 +852,18 @@ export default function App() {
     activeNavContext.item?.path === '/sells/create?status=draft' ||
     window.location.hash.includes('status=draft');
 
+  const isCreateStockAdjustmentView =
+    (activeItemId === 'nav-stock' && activeSubItemId === 'sub-stock-add-adjust') ||
+    activeNavContext.subItem?.path === '/estoque/ajustes/adicionar' ||
+    activeNavContext.item?.path === '/estoque/ajustes/adicionar';
+
+  const isStockAdjustmentsListView =
+    (activeItemId === 'nav-stock' && (activeSubItemId === 'sub-stock-list' || !activeSubItemId)) ||
+    activeNavContext.subItem?.path === '/estoque/ajustes' ||
+    activeNavContext.item?.path === '/estoque/ajustes' ||
+    activeNavContext.subItem?.path === '/stock-adjustments' ||
+    activeNavContext.item?.path === '/stock-adjustments';
+
   const [repairViewMode, setRepairViewMode] = useState<'list' | 'dashboard'>('list');
 
   // Find active tenant company ID
@@ -923,7 +942,7 @@ export default function App() {
       />
 
       {/* 2. Main Content Canvas */}
-      <div className={`flex-1 flex flex-col min-w-0 ${isPOSCreateView ? 'overflow-hidden h-screen' : 'overflow-y-auto h-screen'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 ${isPOSCreateView ? 'overflow-y-auto lg:overflow-hidden h-screen' : 'overflow-y-auto h-screen'}`}>
         {/* Top Header with Breadcrumbs & Context Control - Removido no PDV para liberar espaço vertical e evitar duplicidade de sino/refresh */}
         {!isPOSCreateView && (
           <AppHeader
@@ -945,7 +964,7 @@ export default function App() {
         )}
 
         {/* Dynamic Main Content Container */}
-        <main className={`flex-1 w-full mx-auto ${isPOSCreateView ? 'p-0 max-w-none h-full overflow-hidden' : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'}`}>
+        <main className={`flex-1 w-full mx-auto ${isPOSCreateView ? 'p-0 max-w-none h-full overflow-y-auto lg:overflow-hidden' : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'}`}>
           {/* Notification Alert */}
           {feedback && !isPOSCreateView && (
             <div
@@ -1042,9 +1061,13 @@ export default function App() {
               onShowNotification={showNotification}
             />
           ) : isSuperAdminCouponsView ? (
-            /* FASE 05.3 Gestão de Cupons e Descontos Super Admin */
+            /* FASE 05.3 Gestão de Cupons e Descontos */
             <CouponsManagementView
               onShowNotification={showNotification}
+              initialAddModalOpen={
+                activeNavContext.subItem?.path === '/vendas/desconto/adicionar' ||
+                activeNavContext.item?.path === '/vendas/desconto/adicionar'
+              }
             />
           ) : isSuperAdminCommunicatorView ? (
             /* FASE 05.4 Comunicador Global do Super Admin */
@@ -1283,6 +1306,20 @@ export default function App() {
             <SellList
               companyId={currentCompanyId}
               onNavigateToAdd={() => handleNavigateByPath('/vendas/adicionar')}
+              onShowNotification={showNotification}
+            />
+          ) : isCreateStockAdjustmentView ? (
+            /* Módulo 08 — Adicionar Ajuste de Estoque */
+            <StockAdjustmentCreateView
+              companyId={currentCompanyId}
+              onNavigateToList={() => handleNavigateByPath('/estoque/ajustes')}
+              onShowNotification={showNotification}
+            />
+          ) : isStockAdjustmentsListView ? (
+            /* Módulo 08 — Lista de Ajustes de Estoque */
+            <StockAdjustmentsListView
+              companyId={currentCompanyId}
+              onNavigateToAdd={() => handleNavigateByPath('/estoque/ajustes/adicionar')}
               onShowNotification={showNotification}
             />
           ) : (

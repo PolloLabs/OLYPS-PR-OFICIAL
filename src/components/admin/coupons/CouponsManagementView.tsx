@@ -37,6 +37,7 @@ import type {
 
 interface CouponsManagementViewProps {
   onShowNotification: (type: 'success' | 'error', message: string) => void;
+  initialAddModalOpen?: boolean;
 }
 
 function formatCentsToBRL(cents: number): string {
@@ -61,6 +62,7 @@ function formatDate(isoDate?: string | null): string {
 
 export const CouponsManagementView: React.FC<CouponsManagementViewProps> = ({
   onShowNotification,
+  initialAddModalOpen = false,
 }) => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [availablePlans, setAvailablePlans] = useState<SubscriptionPlan[]>([]);
@@ -82,7 +84,7 @@ export const CouponsManagementView: React.FC<CouponsManagementViewProps> = ({
   const [copiedCodeId, setCopiedCodeId] = useState<string | null>(null);
 
   // Modals state
-  const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState<boolean>(initialAddModalOpen);
   const [couponToEdit, setCouponToEdit] = useState<Coupon | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
@@ -307,7 +309,7 @@ export const CouponsManagementView: React.FC<CouponsManagementViewProps> = ({
             className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Novo Cupom</span>
+            <span>+ Adicionar</span>
           </button>
         </div>
       </div>

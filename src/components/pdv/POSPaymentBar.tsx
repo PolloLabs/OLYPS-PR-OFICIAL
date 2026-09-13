@@ -47,9 +47,9 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
   const getPaymentLabel = (forma: PDVFormaPagamento) => {
     const labels: Record<PDVFormaPagamento, string> = {
       'cotacao': 'Cotação',
-      'credito': 'Venda de crédito',
+      'credito': 'Crédito',
       'cartao': 'Cartão',
-      'multiplo': 'Pagamento múltiplo',
+      'multiplo': 'Múltiplo',
       'dinheiro': 'Dinheiro',
       'pix': 'PIX',
       'boleto': 'Boleto',
@@ -82,18 +82,18 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
     <>
       <div
         id="pos-payment-bar"
-        className={`flex-none bg-gray-900 flex flex-col lg:flex-row items-stretch lg:items-center justify-between transition-all ${
+        className={`fixed bottom-0 left-0 right-0 z-40 lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-auto flex-none bg-gray-900 flex flex-col lg:flex-row items-stretch lg:items-center justify-between shadow-2xl transition-all ${
           isKiosk
-            ? 'p-2.5 sm:p-3 lg:px-6 lg:py-3 gap-2 sm:gap-3 lg:gap-4'
-            : 'p-3 sm:p-4 lg:px-6 lg:py-4 gap-3 sm:gap-4'
+            ? 'p-2 sm:p-2.5 lg:px-6 lg:py-3 gap-1.5 sm:gap-2 lg:gap-4'
+            : 'p-2.5 sm:p-3 lg:px-6 lg:py-4 gap-2 sm:gap-3 lg:gap-4'
         }`}
       >
         {/* Total a Pagar (No mobile fica em linha separada 100% largura; no tablet/desktop ao lado/direita) */}
-        <div className="w-full lg:w-auto lg:order-last bg-gradient-to-br from-blue-700 to-blue-900 px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5 rounded-xl shadow-2xl flex flex-col justify-center min-w-0 lg:min-w-[280px] xl:min-w-[340px]">
-          <span className="text-blue-200 text-xs sm:text-sm font-medium uppercase tracking-wider block mb-0.5 sm:mb-1">
+        <div className="w-full lg:w-auto lg:order-last bg-gradient-to-br from-blue-700 to-blue-900 px-3 py-2 sm:px-5 sm:py-3 lg:px-8 lg:py-4 rounded-lg sm:rounded-xl shadow-md flex items-center justify-between lg:flex-col lg:justify-center min-w-0 lg:min-w-[260px] xl:min-w-[320px]">
+          <span className="text-blue-200 text-xs sm:text-xs lg:text-sm font-semibold uppercase tracking-wider block">
             Total a Pagar
           </span>
-          <div className="text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black truncate">
+          <div className="text-white text-xl sm:text-2xl lg:text-4xl xl:text-5xl font-black truncate">
             {total.toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL',
@@ -102,8 +102,8 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
           </div>
         </div>
 
-        {/* Botões de Pagamento: mobile grid-cols-2, tablet grid-cols-3, desktop linha única */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-row lg:flex-1 lg:items-center gap-2 w-full lg:w-auto">
+        {/* Botões de Pagamento: mobile grid-cols-2 (2 por linha), tablet grid-cols-3, desktop linha única */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-row lg:flex-1 lg:items-center gap-1.5 sm:gap-2 w-full lg:w-auto">
           {(['cotacao', 'credito', 'cartao', 'dinheiro', 'pix'] as PDVFormaPagamento[]).map((forma) => (
             <button
               key={forma}
@@ -112,7 +112,7 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
               onClick={() => handlePaymentClick(forma)}
               disabled={loading}
               aria-label={`Pagar com ${getPaymentLabel(forma)}`}
-              className={`w-full lg:w-auto py-3 px-2 sm:py-3.5 sm:px-3 lg:px-5 lg:py-3.5 xl:px-6 xl:py-4 text-center text-xs sm:text-sm lg:text-base text-white font-bold rounded-lg transition-all transform active:scale-95 lg:hover:scale-105 ${getPaymentColor(forma)} disabled:opacity-50 cursor-pointer touch-manipulation select-none`}
+              className={`w-full lg:w-auto py-2.5 px-2 sm:py-3 sm:px-3 lg:px-5 lg:py-3.5 xl:px-6 xl:py-4 text-center text-xs sm:text-sm lg:text-base text-white font-bold rounded-lg transition-all transform active:scale-95 lg:hover:scale-105 ${getPaymentColor(forma)} disabled:opacity-50 cursor-pointer touch-manipulation select-none`}
             >
               {getPaymentLabel(forma)}
             </button>
@@ -124,7 +124,7 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
             onClick={handleCancel}
             disabled={loading}
             aria-label="Cancelar venda atual"
-            className="w-full lg:w-auto py-3 px-2 sm:py-3.5 sm:px-3 lg:px-5 lg:py-3.5 xl:px-6 xl:py-4 text-center text-xs sm:text-sm lg:text-base bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold rounded-lg transition-all transform active:scale-95 lg:hover:scale-105 cursor-pointer disabled:opacity-50 touch-manipulation select-none"
+            className="w-full lg:w-auto py-2.5 px-2 sm:py-3 sm:px-3 lg:px-5 lg:py-3.5 xl:px-6 xl:py-4 text-center text-xs sm:text-sm lg:text-base bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold rounded-lg transition-all transform active:scale-95 lg:hover:scale-105 cursor-pointer disabled:opacity-50 touch-manipulation select-none"
           >
             Cancelar
           </button>

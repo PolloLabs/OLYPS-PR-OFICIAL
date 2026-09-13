@@ -30,6 +30,7 @@ import { SellService } from './src/server/services/sellService.js';
 import { POSService } from './src/server/services/posService.js';
 import { DraftService } from './src/server/services/draftService.js';
 import { ContactService } from './src/server/services/contactService.js';
+import { StockAdjustmentService } from './src/server/services/stockAdjustmentService.js';
 import type {
   SupabaseHealthStatus,
   ApiResponse,
@@ -3723,6 +3724,130 @@ async function startServer() {
         res.status(400).json({
           success: false,
           error: { code: 'BATCH_PRODUCT_ERROR', message: err.message || 'Erro na ação em lote.' },
+        });
+      }
+    }
+  );
+
+  // ============================================
+  // AJUSTES DE ESTOQUE (MÓDULO 08)
+  // ============================================
+
+  // Listar ajustes e KPIs
+  app.get(
+    '/api/companies/:companyId/stock-adjustments',
+    requireAuth,
+    requireCompanyContext,
+    requirePermission('estoque.visualizar'),
+    async (req, res) => {
+      const companyId = req.params.companyId;
+      try {
+        const { startDate, endDate, type, locationId, search } = req.query;
+        const result = await StockAdjustmentService.list(companyId, {
+          startDate: startDate as string | undefined,
+          endDate: endDate as string | undefined,
+          type: type as any,
+          locationId: locationId as string | undefined,
+          search: search as string | undefined,
+        });
+        res.status(200).json({
+          success: true,
+          data: result.items,
+          kpis: result.kpis,
+        });
+      } catch (err: any) {
+        res.status(500).json({
+          success: false,
+          error: { code: 'STOCK_ADJUSTMENT_LIST_ERROR', message: err.message || 'Erro ao listar ajustes de estoque.' },
+        });
+      }
+    }
+  );
+
+  // Obter próximo número sequencial de referência
+  app.get(
+    '/api/companies/:companyId/stock-adjustments/next-reference',
+    requireAuth,
+    requireCompanyContext,
+    requirePermission('estoque.visualizar'),
+    async (req, res) => {
+      const companyId = req.params.companyId;
+      try {
+        const nextRef = StockAdjustmentService.getNextReferenceNumber(companyId);
+        res.status(200).json({ success: true, data: { referenceNumber: nextRef } });
+      } catch (err: any) {
+        res.status(500).json({
+          success: false,
+          error: { code: 'NEXT_REFERENCE_ERROR', message: err.message || 'Erro ao gerar número de referência.' },
+        });
+      }
+    }
+  );
+
+  // Obter detalhes de um ajuste
+  app.get(
+    '/api/companies/:companyId/stock-adjustments/:id',
+    requireAuth,
+    requireCompanyContext,
+    requirePermission('estoque.visualizar'),
+    async (req, res) => {
+      const { companyId, id } = req.params;
+      try {
+        const adjustment = await StockAdjustmentService.getById(companyId, id);
+        if (!adjustment) {
+          return res.status(404).json({
+            success: false,
+            error: { code: 'NOT_FOUND', message: 'Ajuste de estoque não encontrado.' },
+          });
+        }
+        res.status(200).json({ success: true, data: adjustment });
+      } catch (err: any) {
+        res.status(500).json({
+          success: false,
+          error: { code: 'STOCK_ADJUSTMENT_GET_ERROR', message: err.message || 'Erro ao obter ajuste de estoque.' },
+        });
+      }
+    }
+  );
+
+  // Criar novo ajuste de estoque
+  app.post(
+    '/api/companies/:companyId/stock-adjustments',
+    requireAuth,
+    requireCompanyContext,
+    requirePermission('estoque.ajustar'),
+    async (req, res) => {
+      const companyId = req.params.companyId;
+      const user = (req as any).user;
+      const addedBy = user?.email || user?.name || 'Administrador';
+
+      try {
+        const adjustment = await StockAdjustmentService.create(companyId, req.body, addedBy);
+        res.status(201).json({ success: true, data: adjustment });
+      } catch (err: any) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'STOCK_ADJUSTMENT_CREATE_ERROR', message: err.message || 'Erro ao criar ajuste de estoque.' },
+        });
+      }
+    }
+  );
+
+  // Excluir ajuste de estoque (com reversão de estoque)
+  app.delete(
+    '/api/companies/:companyId/stock-adjustments/:id',
+    requireAuth,
+    requireCompanyContext,
+    requirePermission('estoque.ajustar'),
+    async (req, res) => {
+      const { companyId, id } = req.params;
+      try {
+        await StockAdjustmentService.delete(companyId, id);
+        res.status(200).json({ success: true, message: 'Ajuste de estoque excluído e saldo revertido com sucesso.' });
+      } catch (err: any) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'STOCK_ADJUSTMENT_DELETE_ERROR', message: err.message || 'Erro ao excluir ajuste de estoque.' },
         });
       }
     }

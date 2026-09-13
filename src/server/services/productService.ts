@@ -2078,4 +2078,56 @@ export class ProductService {
     saveStoreToDisk(companyId, store);
     return store.warranties.length < initial;
   }
+
+  /**
+   * Aplica ou reverte um ajuste manual de estoque para itens de uma empresa.
+   * Modifica tanto o currentStock do produto quanto a respectiva localização em store.locations.
+   */
+  static async adjustStock(
+    companyId: UUID,
+    items: Array<{ productId: UUID; locationId?: UUID; quantityDelta: number }>
+  ): Promise<void> {
+    const store = getTenantStore(companyId);
+    const now = new Date().toISOString();
+
+    for (const item of items) {
+      const prod = store.products.find((p) => p.id === item.productId);
+      if (prod) {
+        const prevStock = Number(prod.currentStock || 0);
+        prod.currentStock = Math.max(0, prevStock + Number(item.quantityDelta));
+        prod.updatedAt = now;
+      }
+
+      if (item.locationId) {
+        const loc = store.locations.find(
+          (l) => l.productId === item.productId && l.locationId === item.locationId
+        );
+        if (loc) {
+          const prevLocStock = Number(loc.currentStock || 0);
+          loc.currentStock = Math.max(0, prevLocStock + Number(item.quantityDelta));
+          loc.updatedAt = now;
+        } else {
+          store.locations.push({
+            id: `ploc-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            companyId,
+            productId: item.productId,
+            variationId: `var-${item.productId}`,
+            locationId: item.locationId,
+            rackLocation: null,
+            manageStock: true,
+            initialStock: 0,
+            currentStock: Math.max(0, Number(item.quantityDelta)),
+            minStock: null,
+            maxStock: null,
+            isAvailable: true,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
+    }
+
+    saveStoreToDisk(companyId, store);
+  }
 }
+

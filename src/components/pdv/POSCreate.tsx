@@ -344,7 +344,7 @@ export const POSCreate: React.FC<POSCreateProps> = ({
       className={
         isFullscreen
           ? "fixed inset-0 z-50 h-screen h-[100dvh] max-h-[100dvh] w-screen max-w-[100vw] bg-slate-100 flex flex-col overflow-hidden select-none"
-          : "min-h-screen bg-slate-100 flex flex-col pb-20 select-none overflow-x-hidden"
+          : "min-h-screen bg-slate-100 flex flex-col pb-48 sm:pb-36 lg:pb-0 select-none overflow-x-hidden"
       }
     >
       {/* HEADER SUPERIOR */}
@@ -387,8 +387,8 @@ export const POSCreate: React.FC<POSCreateProps> = ({
           </div>   
         </div>
 
-        {/* Lado Direito: Ações, Alertas e Operações (grid-cols-5 mobile, grid-cols-6 tablet, flex desktop) */}
-        <div className="w-full lg:w-auto grid grid-cols-5 sm:grid-cols-6 lg:flex lg:items-center gap-1.5 sm:gap-2">
+        {/* Lado Direito: Ações, Alertas e Operações (grid-cols-6 mobile/tablet, flex desktop) */}
+        <div className="w-full lg:w-auto grid grid-cols-6 sm:grid-cols-6 lg:flex lg:items-center gap-1.5 sm:gap-2">
           {/* 1. Resetar / Limpar Carrinho (RotateCcw) */}
           <button
             id="btn-pos-icon-refresh"
@@ -515,14 +515,14 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             <Printer className="w-4 h-4" />
           </button>
 
-          {/* 9. Modo Kiosk (Tela Cheia) - visível em tablets e desktop */}
+          {/* 9. Modo Kiosk (Tela Cheia) - visível em todos os tamanhos incluindo celular */}
           <button
             id="btn-pos-kiosk-fullscreen"
             type="button"
             onClick={toggleFullscreen}
             aria-label={isFullscreen ? 'Sair da tela cheia' : 'Modo Kiosk (Tela Cheia)'}
             title={isFullscreen ? 'Sair da tela cheia (Kiosk)' : 'Modo Kiosk (Tela Cheia)'}
-            className="hidden sm:flex h-9 sm:h-8 px-2 bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white rounded items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer touch-manipulation"
+            className="flex w-full sm:w-auto h-9 sm:h-8 px-2 bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white rounded items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
             {isFullscreen ? (
               <Minimize2 className="w-4 h-4 text-amber-300" />

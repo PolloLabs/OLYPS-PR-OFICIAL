@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import {
-  ShieldCheck,
-  Info,
-  Layers,
   ArrowLeft,
   Upload,
   Save,
@@ -182,10 +179,6 @@ export const ModulePlaceholderView: React.FC<ModulePlaceholderViewProps> = ({
                 size="sm"
               />
             )}
-            <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-xs font-semibold">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Fase 02.9 Ativa</span>
-            </div>
           </div>
         </div>
       </div>
@@ -502,68 +495,6 @@ export const ModulePlaceholderView: React.FC<ModulePlaceholderViewProps> = ({
           emptyCreateLabel={`Adicionar primeiro registro de ${title.replace('Lista de ', '')}`}
         />
       )}
-
-      {/* Module Architecture & RBAC Validation Card */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Left Card: Security & RBAC Status */}
-        <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-xs space-y-3">
-          <div className="flex items-center space-x-2 pb-2 border-b border-slate-100">
-            <ShieldCheck className="w-4 h-4 text-slate-700" />
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Controle de Acesso RBAC &amp; Tenant
-            </h3>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between py-1 border-b border-slate-50">
-              <span className="text-slate-500">Permissão Exigida:</span>
-              <code className="font-mono text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
-                {permission || 'Acesso Livre / Autenticado'}
-              </code>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-50">
-              <span className="text-slate-500">Escopo da Rota:</span>
-              <span className="font-semibold text-slate-800 capitalize">
-                {item.scope === 'platform'
-                  ? 'Global (Super Admin)'
-                  : 'Empresa / Multi-Tenant'}
-              </span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-50">
-              <span className="text-slate-500">Autorização Backend:</span>
-              <span className="inline-flex items-center text-emerald-700 font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 mr-1" />
-                requireCompanyPermission
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Card: Phase Roadmap Status */}
-        <div className="bg-white rounded-lg border border-slate-200 p-5 shadow-xs space-y-3">
-          <div className="flex items-center space-x-2 pb-2 border-b border-slate-100">
-            <Layers className="w-4 h-4 text-slate-700" />
-            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Arquitetura &amp; Prontidão
-            </h3>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <p className="text-slate-600 leading-relaxed">
-              A estrutura oficial de navegação dos 13 módulos do <strong>OLYPS PRO</strong>,
-              tabelas padronizadas, paginação 25/50/75/100/Todos, exportações e formulários estão
-              auditados e consolidados na <strong>Fase 02.9</strong>.
-            </p>
-            <div className="flex items-center space-x-2 text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded border border-slate-200">
-              <Info className="w-4 h-4 text-slate-600 shrink-0" />
-              <span>
-                As rotas de negócio, persistência no Supabase e regras fiscais serão
-                implementadas progressivamente a partir da <strong>Fase 03</strong>.
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
