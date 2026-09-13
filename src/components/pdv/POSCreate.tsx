@@ -17,6 +17,8 @@ import {
   AlertCircle,
   Menu,
   Bell,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { usePOS } from '../../hooks/pdv/usePOS.js';
 import { usePrintReceipt } from '../../hooks/pdv/usePrintReceipt.js';
@@ -41,7 +43,7 @@ import {
   POSResetConfirmModal,
   POSCancelConfirmModal,
 } from './modals/POSConfirmationModals.js';
-import type { POSPaymentMethod, PDVFormaPagamento } from '../../types/pdv.types.js';
+import type { POSPaymentMethod, PDVFormaPagamento, POSProduct } from '../../types/pdv.types.js';
 
 interface POSCreateProps {
   companyId: string;
@@ -109,6 +111,7 @@ export const POSCreate: React.FC<POSCreateProps> = ({
     shippingValue,
     setShippingValue,
     totals,
+    isLoading,
     isProcessingPayment,
     addProductToCart,
     updateItemQuantity,
@@ -162,6 +165,84 @@ export const POSCreate: React.FC<POSCreateProps> = ({
     errorMessage,
     clearError,
   } = usePOS(companyId, onShowNotification);
+
+  // Modo Kiosk (Tela Cheia)
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const toggleFullscreen = () => {
+    const posElem = document.getElementById('pos-point-of-sale') || document.documentElement;
+    if (!document.fullscreenElement && !isFullscreen) {
+      posElem.requestFullscreen?.().catch((err) => {
+        console.warn('Fullscreen API request failed or restricted in iframe:', err);
+      });
+      setIsFullscreen(true);
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.().catch((err) => {
+          console.warn('Exit fullscreen failed:', err);
+        });
+      }
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch(() => {});
+        }
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  // Proteção Anti-Perda: aviso beforeunload quando o carrinho tiver itens
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (items.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [items.length]);
+
+  // Feedback Visual: Shake vermelho para ações inválidas (ex: carrinho vazio)
+  const [cartShake, setCartShake] = useState(false);
+  const triggerCartShake = () => {
+    setCartShake(true);
+    setTimeout(() => setCartShake(false), 450);
+  };
+
+  // Feedback Visual: Highlight verde rápido (fade 600ms) no produto adicionado
+  const [lastAddedItemId, setLastAddedItemId] = useState<string | null>(null);
+  const handleAddProductWithHighlight = (prod: POSProduct) => {
+    addProductToCart(prod);
+    setLastAddedItemId(prod.id);
+    setTimeout(() => {
+      setLastAddedItemId(null);
+    }, 650);
+  };
+
+  // Busca Inteligente: Tecla ENTER adiciona o primeiro produto filtrado
+  const handleSearchEnter = () => {
+    if (filteredProducts.length > 0) {
+      handleAddProductWithHighlight(filteredProducts[0]);
+      setProductSearch('');
+    }
+  };
 
   // Data e hora em tempo real (atualizado a cada segundo)
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -235,6 +316,7 @@ export const POSCreate: React.FC<POSCreateProps> = ({
   // Interceptador dos botões de pagamento da barra inferior
   const handlePaymentMethod = (method: POSPaymentMethod) => {
     if (items.length === 0) {
+      triggerCartShake();
       onShowNotification?.({
         type: 'error',
         message: 'Carrinho vazio',
@@ -259,24 +341,29 @@ export const POSCreate: React.FC<POSCreateProps> = ({
   return (
     <div
       id="pos-point-of-sale"
-      className="min-h-screen bg-slate-100 flex flex-col pb-20 select-none"
+      className={
+        isFullscreen
+          ? "fixed inset-0 z-50 h-screen h-[100dvh] max-h-[100dvh] w-screen max-w-[100vw] bg-slate-100 flex flex-col overflow-hidden select-none"
+          : "min-h-screen bg-slate-100 flex flex-col pb-20 select-none overflow-x-hidden"
+      }
     >
       {/* HEADER SUPERIOR */}
-      <header className="bg-white border-b border-slate-200 px-4 py-2 sticky top-0 z-30 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <header className="flex-none bg-white border-b border-slate-200 px-3 sm:px-4 py-2 sticky top-0 z-30 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
         {/* Lado Esquerdo: Menu, Breadcrumbs e Configurações */}
-        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             id="btn-pos-menu"
             type="button"
             onClick={onNavigateBack}
-            className="p-2 hover:bg-gray-100 rounded text-slate-700 transition-colors cursor-pointer"
+            aria-label="Menu / Voltar ao Painel"
+            className="p-2 hover:bg-gray-100 rounded text-slate-700 transition-colors cursor-pointer touch-manipulation"
             title="Menu / Voltar ao Painel"
           >
             <Menu className="w-5 h-5" />
           </button>
-      <div style={{ display: 'none' }}>
-  <Breadcrumb items={['OLYPS PRO', 'Vender', 'PDV']} />
-</div>
+          <div style={{ display: 'none' }}>
+            <Breadcrumb items={['OLYPS PRO', 'Vender', 'PDV']} />
+          </div>
           {/* Localização dropdown */}
           <div className="hidden md:flex items-center gap-1.5 bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs">
             <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
@@ -298,23 +385,37 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
             <span id="pos-current-date">{formatDateTime(currentDateTime)}</span>
           </div>   
-          </div>
-        {/* Lado Direito: Ações, Alertas e Operações */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Bell Alertas */}
-          <div className="relative">
+        </div>
+
+        {/* Lado Direito: Ações, Alertas e Operações (grid-cols-5 mobile, grid-cols-6 tablet, flex desktop) */}
+        <div className="w-full lg:w-auto grid grid-cols-5 sm:grid-cols-6 lg:flex lg:items-center gap-1.5 sm:gap-2">
+          {/* 1. Resetar / Limpar Carrinho (RotateCcw) */}
+          <button
+            id="btn-pos-icon-refresh"
+            type="button"
+            onClick={() => setIsResetConfirmOpen(true)}
+            aria-label="Resetar / Limpar Carrinho"
+            title="Resetar / Limpar Carrinho"
+            className="w-full sm:w-auto h-9 sm:h-8 p-2 hover:bg-gray-100 rounded text-slate-600 hover:text-slate-800 transition-colors flex items-center justify-center cursor-pointer touch-manipulation"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+
+          {/* 2. Sino de Notificações / Alertas (Único no PDV, ao lado de Adicionar despesa/Reparar) */}
+          <div className="relative flex justify-center">
             <button
               id="btn-pos-icon-alert"
               type="button"
               onClick={() => setIsAlertsModalOpen(true)}
+              aria-label="Alertas do Caixa e Estoque"
               title="Alertas do Caixa e Estoque"
-              className="p-2 hover:bg-gray-100 rounded text-slate-600 hover:text-slate-800 transition-colors relative flex items-center justify-center cursor-pointer"
+              className="w-full sm:w-auto h-9 sm:h-8 p-2 hover:bg-gray-100 rounded text-slate-600 hover:text-slate-800 transition-colors relative flex items-center justify-center cursor-pointer touch-manipulation"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4 h-4" />
               {unreadAlertsCount > 0 && (
                 <span
                   id="badge-pos-alerts-count"
-                  className="absolute top-1 right-1 bg-rose-600 text-white text-[10px] font-black rounded-full h-4 w-4 flex items-center justify-center shadow"
+                  className="absolute -top-0.5 -right-0.5 bg-rose-600 text-white text-[10px] font-black rounded-full h-4 w-4 flex items-center justify-center shadow"
                 >
                   {unreadAlertsCount}
                 </span>
@@ -322,31 +423,20 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             </button>
           </div>
 
-          {/* Refresh / Reset com Confirmação */}
-          <button
-            id="btn-pos-icon-refresh"
-            type="button"
-            onClick={() => setIsResetConfirmOpen(true)}
-            title="Resetar / Limpar Carrinho"
-            className="p-2 hover:bg-gray-100 rounded text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
-          >
-            <RotateCcw className="w-5 h-5" />
-          </button>
-
-          <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block" />
-
-          {/* 1. "Adicionar despesa" (roxo com ícone menos) */}
+          {/* 3. "Adicionar despesa" (roxo com ícone menos) */}
           <button
             id="btn-pos-quick-expense"
             type="button"
             onClick={() => setIsExpenseModalOpen(true)}
-            className="h-8 px-2.5 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-xs font-bold rounded flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+            aria-label="Adicionar despesa"
+            title="Adicionar despesa"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 sm:px-2.5 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white text-xs font-bold rounded flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
-            <MinusCircle className="w-3.5 h-3.5" />
+            <MinusCircle className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             <span className="hidden md:inline">Adicionar despesa</span>
           </button>
 
-          {/* 2. "Reparar" (azul com ícone chave) */}
+          {/* 4. "Reparar" (azul com ícone chave) */}
           <button
             id="btn-pos-quick-repair"
             type="button"
@@ -357,18 +447,21 @@ export const POSCreate: React.FC<POSCreateProps> = ({
                 window.location.hash = '#/reparos/folha-de-trabalho';
               }
             }}
-            className="h-8 px-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+            aria-label="Ir para Reparos"
+            title="Ir para Reparos"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 sm:px-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
-            <Wrench className="w-3.5 h-3.5" />
+            <Wrench className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             <span className="hidden md:inline">Reparar</span>
           </button>
 
-          {/* 4. Ícone Salvar / Disquete (azul - Salvar Cotação) */}
+          {/* 5. Ícone Salvar / Disquete (azul - Salvar Cotação) */}
           <button
             id="btn-pos-icon-save"
             type="button"
             onClick={() => {
               if (items.length === 0) {
+                triggerCartShake();
                 onShowNotification?.({
                   type: 'error',
                   message: 'Carrinho vazio',
@@ -379,8 +472,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
               }
               setIsQuoteModalOpen(true);
             }}
+            aria-label="Salvar Carrinho como Cotação / Orçamento"
             title="Salvar Carrinho como Cotação / Orçamento"
-            className="w-8 h-8 rounded bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 rounded bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
             <Save className="w-4 h-4" />
           </button>
@@ -390,8 +484,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             id="btn-pos-icon-calculator"
             type="button"
             onClick={() => setIsCalculatorOpen(true)}
+            aria-label="Calculadora Rápida"
             title="Calculadora Rápida"
-            className="w-8 h-8 rounded bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 rounded bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
             <Calculator className="w-4 h-4" />
           </button>
@@ -401,8 +496,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             id="btn-pos-icon-drawer"
             type="button"
             onClick={() => setIsCashRegisterModalOpen(true)}
+            aria-label="Gaveta do Caixa"
             title="Gaveta do Caixa (Conferência e Sangria)"
-            className="w-8 h-8 rounded bg-teal-500 hover:bg-teal-600 active:bg-teal-700 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 rounded bg-teal-500 hover:bg-teal-600 active:bg-teal-700 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
             <Archive className="w-4 h-4" />
           </button>
@@ -412,26 +508,43 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             id="btn-pos-icon-print"
             type="button"
             onClick={handlePrint}
-            className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+            aria-label="Imprimir cupom"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors flex items-center justify-center cursor-pointer shadow-xs touch-manipulation"
             title="Imprimir cupom"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
+            <Printer className="w-4 h-4" />
           </button>
 
-          {/* 9. Ícone X (vermelho - Cancelar Venda Atual) */}
+          {/* 9. Modo Kiosk (Tela Cheia) - visível em tablets e desktop */}
+          <button
+            id="btn-pos-kiosk-fullscreen"
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? 'Sair da tela cheia' : 'Modo Kiosk (Tela Cheia)'}
+            title={isFullscreen ? 'Sair da tela cheia (Kiosk)' : 'Modo Kiosk (Tela Cheia)'}
+            className="hidden sm:flex h-9 sm:h-8 px-2 bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white rounded items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer touch-manipulation"
+          >
+            {isFullscreen ? (
+              <Minimize2 className="w-4 h-4 text-amber-300" />
+            ) : (
+              <Maximize2 className="w-4 h-4" />
+            )}
+            <span className="hidden xl:inline text-xs font-medium">Kiosk</span>
+          </button>
+
+          {/* 10. Ícone X (vermelho - Cancelar Venda Atual) */}
           <button
             id="btn-pos-icon-close"
             type="button"
             onClick={() => setIsCancelConfirmOpen(true)}
+            aria-label="Cancelar Venda Atual"
             title="Cancelar Venda Atual"
-            className="w-8 h-8 rounded bg-red-600 hover:bg-red-700 active:bg-red-800 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 rounded bg-red-600 hover:bg-red-700 active:bg-red-800 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
             <X className="w-4 h-4" />
           </button>
 
-          {/* Ícone Voltar (azul/slate - Voltar para Lista de POS) */}
+          {/* 11. Ícone Voltar (azul/slate - Voltar para Lista de POS) */}
           <button
             id="btn-pos-icon-back"
             type="button"
@@ -442,8 +555,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
                 onNavigateBack();
               }
             }}
+            aria-label="Voltar para Lista de POS"
             title="Voltar para Lista de POS"
-            className="w-8 h-8 rounded bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer"
+            className="w-full sm:w-auto h-9 sm:h-8 px-2 rounded bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white flex items-center justify-center shadow-xs transition-colors cursor-pointer touch-manipulation"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -467,6 +581,7 @@ export const POSCreate: React.FC<POSCreateProps> = ({
               id="btn-close-pos-error"
               type="button"
               onClick={clearError}
+              aria-label="Fechar erro"
               className="text-red-500 hover:text-red-700 ml-4 flex-shrink-0 cursor-pointer p-1 rounded hover:bg-red-100 transition-colors"
               title="Fechar"
             >
@@ -478,10 +593,23 @@ export const POSCreate: React.FC<POSCreateProps> = ({
         </div>
       )}
 
-      {/* CORPO DO POS: 2 COLUNAS (60% Venda Atual / 40% Catálogo) */}
-      <main className="flex-1 max-w-[1920px] w-full mx-auto p-3 grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
-        {/* Coluna Esquerda: Venda Atual (60% -> 7 colunas em telas grandes) */}
-        <div className="lg:col-span-7 flex flex-col">
+      {/* CORPO DO POS: 2 COLUNAS (60% Venda Atual / 40% Catálogo em Desktop; Empilhado no Mobile/Tablet) */}
+      <main
+        id="pos-main-content"
+        className={`w-full mx-auto p-2 sm:p-3 items-stretch ${
+          isFullscreen
+            ? "flex-1 min-h-0 max-h-full overflow-hidden flex flex-col lg:grid lg:grid-cols-12 gap-2.5 sm:gap-3"
+            : "flex-1 max-w-[1920px] grid grid-cols-12 gap-3 overflow-x-hidden"
+        }`}
+      >
+        {/* Coluna Esquerda: Venda Atual (Carrinho) */}
+        <div
+          className={`flex flex-col min-h-0 overflow-hidden ${
+            isFullscreen
+              ? "flex-1 min-h-0 h-1/2 lg:h-full lg:col-span-7"
+              : "col-span-12 lg:col-span-7"
+          }`}
+        >
           <POSItemsTable
             items={items}
             customers={customers}
@@ -490,6 +618,7 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             onOpenCustomerModal={() => setIsCustomerModalOpen(true)}
             productSearch={productSearch}
             onProductSearchChange={setProductSearch}
+            onSearchEnter={handleSearchEnter}
             onUpdateQuantity={updateItemQuantity}
             onRemoveItem={removeItem}
             totals={totals}
@@ -503,11 +632,20 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             setOrderTaxValue={setOrderTaxValue}
             shippingValue={shippingValue}
             setShippingValue={setShippingValue}
+            cartShake={cartShake}
+            lastAddedItemId={lastAddedItemId}
+            isKiosk={isFullscreen}
           />
         </div>
 
-        {/* Coluna Direita: Catálogo de Produtos (40% -> 5 colunas em telas grandes) */}
-        <div className="lg:col-span-5 flex flex-col">
+        {/* Coluna Direita: Catálogo de Produtos */}
+        <div
+          className={`flex flex-col min-h-0 overflow-hidden ${
+            isFullscreen
+              ? "flex-1 min-h-0 h-1/2 lg:h-full lg:col-span-5"
+              : "col-span-12 lg:col-span-5"
+          }`}
+        >
           <POSProductGrid
             products={filteredProducts}
             categories={categories}
@@ -516,7 +654,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             onSelectCategory={setSelectedCategory}
             selectedBrand={selectedBrand}
             onSelectBrand={setSelectedBrand}
-            onAddProduct={addProductToCart}
+            onAddProduct={handleAddProductWithHighlight}
+            isLoading={isLoading}
+            isKiosk={isFullscreen}
           />
         </div>
       </main>
@@ -525,8 +665,10 @@ export const POSCreate: React.FC<POSCreateProps> = ({
       <POSPaymentBar
         total={totals.totalToPay}
         loading={isProcessingPayment}
+        isKiosk={isFullscreen}
         onCompleteSale={async (forma: PDVFormaPagamento, data: any) => {
           if (items.length === 0) {
+            triggerCartShake();
             onShowNotification?.({
               type: 'error',
               message: 'Carrinho vazio',

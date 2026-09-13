@@ -923,27 +923,29 @@ export default function App() {
       />
 
       {/* 2. Main Content Canvas */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
-        {/* Top Header with Breadcrumbs & Context Control */}
-        <AppHeader
-          breadcrumb={activeNavContext.breadcrumb}
-          isCollapsed={isCollapsed}
-          onToggleSidebar={() => setIsCollapsed((prev) => !prev)}
-          userRole={userRole}
-          onChangeUserRole={setUserRole}
-          isPlatformAdmin={isPlatformAdmin}
-          onTogglePlatformAdmin={() => setIsPlatformAdmin((prev) => !prev)}
-          activeCompanyName={activeCompanyName}
-          onChangeCompany={setActiveCompanyName}
-          availableCompanies={MOCK_COMPANIES.map((c) => c.name)}
-          isLoading={isLoading}
-          onRefresh={fetchData}
-          onNavigate={handleNavigateByPath}
-          onShowNotification={showNotification}
-        />
+      <div className={`flex-1 flex flex-col min-w-0 ${isPOSCreateView ? 'overflow-hidden h-screen' : 'overflow-y-auto h-screen'}`}>
+        {/* Top Header with Breadcrumbs & Context Control - Removido no PDV para liberar espaço vertical e evitar duplicidade de sino/refresh */}
+        {!isPOSCreateView && (
+          <AppHeader
+            breadcrumb={activeNavContext.breadcrumb}
+            isCollapsed={isCollapsed}
+            onToggleSidebar={() => setIsCollapsed((prev) => !prev)}
+            userRole={userRole}
+            onChangeUserRole={setUserRole}
+            isPlatformAdmin={isPlatformAdmin}
+            onTogglePlatformAdmin={() => setIsPlatformAdmin((prev) => !prev)}
+            activeCompanyName={activeCompanyName}
+            onChangeCompany={setActiveCompanyName}
+            availableCompanies={MOCK_COMPANIES.map((c) => c.name)}
+            isLoading={isLoading}
+            onRefresh={fetchData}
+            onNavigate={handleNavigateByPath}
+            onShowNotification={showNotification}
+          />
+        )}
 
         {/* Dynamic Main Content Container */}
-        <main className={`flex-1 w-full mx-auto ${isPOSCreateView ? 'p-0 max-w-none' : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'}`}>
+        <main className={`flex-1 w-full mx-auto ${isPOSCreateView ? 'p-0 max-w-none h-full overflow-hidden' : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6'}`}>
           {/* Notification Alert */}
           {feedback && !isPOSCreateView && (
             <div

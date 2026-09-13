@@ -7,6 +7,7 @@ export interface POSPaymentBarProps {
   loading: boolean;
   onOpenRecentTransactions?: () => void;
   onCancelSale?: () => void;
+  isKiosk?: boolean;
 }
 
 export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
@@ -15,6 +16,7 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
   loading,
   onOpenRecentTransactions,
   onCancelSale,
+  isKiosk = false,
 }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<PDVFormaPagamento | null>(null);
@@ -78,16 +80,39 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
 
   return (
     <>
-      <div id="pos-payment-bar" className="bg-gray-900 p-4 flex flex-wrap items-center justify-between gap-4">
-        {/* Botões de Pagamento - lado esquerdo */}
-        <div className="flex gap-2 flex-1 flex-wrap items-center">
-          {(['cotacao', 'credito', 'cartao', 'dinheiro', 'pix', 'boleto'] as PDVFormaPagamento[]).map((forma) => (
+      <div
+        id="pos-payment-bar"
+        className={`flex-none bg-gray-900 flex flex-col lg:flex-row items-stretch lg:items-center justify-between transition-all ${
+          isKiosk
+            ? 'p-2.5 sm:p-3 lg:px-6 lg:py-3 gap-2 sm:gap-3 lg:gap-4'
+            : 'p-3 sm:p-4 lg:px-6 lg:py-4 gap-3 sm:gap-4'
+        }`}
+      >
+        {/* Total a Pagar (No mobile fica em linha separada 100% largura; no tablet/desktop ao lado/direita) */}
+        <div className="w-full lg:w-auto lg:order-last bg-gradient-to-br from-blue-700 to-blue-900 px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5 rounded-xl shadow-2xl flex flex-col justify-center min-w-0 lg:min-w-[280px] xl:min-w-[340px]">
+          <span className="text-blue-200 text-xs sm:text-sm font-medium uppercase tracking-wider block mb-0.5 sm:mb-1">
+            Total a Pagar
+          </span>
+          <div className="text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black truncate">
+            {total.toLocaleString('pt-BR', { 
+              style: 'currency', 
+              currency: 'BRL',
+              minimumFractionDigits: 2 
+            })}
+          </div>
+        </div>
+
+        {/* Botões de Pagamento: mobile grid-cols-2, tablet grid-cols-3, desktop linha única */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-row lg:flex-1 lg:items-center gap-2 w-full lg:w-auto">
+          {(['cotacao', 'credito', 'cartao', 'dinheiro', 'pix'] as PDVFormaPagamento[]).map((forma) => (
             <button
               key={forma}
               id={`btn-pos-pay-${forma}`}
+              type="button"
               onClick={() => handlePaymentClick(forma)}
               disabled={loading}
-              className={`px-6 py-4 text-white font-bold rounded-lg transition-all transform hover:scale-105 ${getPaymentColor(forma)} disabled:opacity-50 cursor-pointer`}
+              aria-label={`Pagar com ${getPaymentLabel(forma)}`}
+              className={`w-full lg:w-auto py-3 px-2 sm:py-3.5 sm:px-3 lg:px-5 lg:py-3.5 xl:px-6 xl:py-4 text-center text-xs sm:text-sm lg:text-base text-white font-bold rounded-lg transition-all transform active:scale-95 lg:hover:scale-105 ${getPaymentColor(forma)} disabled:opacity-50 cursor-pointer touch-manipulation select-none`}
             >
               {getPaymentLabel(forma)}
             </button>
@@ -95,26 +120,14 @@ export const POSPaymentBar: React.FC<POSPaymentBarProps> = ({
           
           <button
             id="btn-pos-cancel-action"
+            type="button"
             onClick={handleCancel}
             disabled={loading}
-            className="px-6 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+            aria-label="Cancelar venda atual"
+            className="w-full lg:w-auto py-3 px-2 sm:py-3.5 sm:px-3 lg:px-5 lg:py-3.5 xl:px-6 xl:py-4 text-center text-xs sm:text-sm lg:text-base bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold rounded-lg transition-all transform active:scale-95 lg:hover:scale-105 cursor-pointer disabled:opacity-50 touch-manipulation select-none"
           >
             Cancelar
           </button>
-        </div>
-
-        {/* Total a Pagar - lado direito - AMPLIADO */}
-        <div className="bg-gradient-to-br from-blue-700 to-blue-900 px-10 py-6 rounded-xl shadow-2xl min-w-[300px]">
-          <span className="text-blue-200 text-sm font-medium uppercase tracking-wider block mb-1">
-            Total a Pagar
-          </span>
-          <div className="text-white text-5xl font-black">
-            {total.toLocaleString('pt-BR', { 
-              style: 'currency', 
-              currency: 'BRL',
-              minimumFractionDigits: 2 
-            })}
-          </div>
         </div>
       </div>
 
