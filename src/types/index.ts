@@ -18,3 +18,5 @@ export * from './announcement.types.js';
 export * from './notification.types.js';
 export * from './product.types.js';
 export * from './productImport.types.js';
+export * from './profitLoss.types.js';
+export * from './businessSettings.types.js';

@@ -41,6 +41,7 @@ import type {
   CatalogColor,
   CatalogSize,
 } from '../../types/index.js';
+import { api } from '../../lib/api.js';
 
 interface ProductFormModalProps {
   isOpen: boolean;
@@ -204,6 +205,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   // Taxes
   const [applicableTax, setApplicableTax] = useState('');
   const [salePriceTaxType, setSalePriceTaxType] = useState<TaxType>('exclusive');
+  const [companyTaxRates, setCompanyTaxRates] = useState<Array<{ id: string; name: string; rate: number }>>([]);
 
   // Pricing & Margin
   const [purchasePrice, setPurchasePrice] = useState<string>('');
@@ -383,6 +385,40 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
       handleAutoGenerateSku();
     }
   }, [productToEdit, isCopying, isOpen]);
+
+  // Sincronizar configuração fiscal da empresa para novos produtos
+  useEffect(() => {
+    if (!isOpen || !companyId) return;
+
+    api.get<any>(
+      `/api/companies/${companyId}/business-settings`,
+      { companyId }
+    )
+      .then((res: any) => {
+        const data: any = res?.data || res;
+        if (data) {
+          if (Array.isArray(data.taxRates)) {
+            setCompanyTaxRates(data.taxRates);
+          }
+          if (!productToEdit) {
+            if (data.taxCalculationType === 'inclusive' || data.taxCalculationType === 'exclusive') {
+              setSalePriceTaxType(data.taxCalculationType);
+            }
+            if (data.defaultTaxRate !== undefined) {
+              const matched = Array.isArray(data.taxRates)
+                ? data.taxRates.find((tr: any) => tr.rate === data.defaultTaxRate)
+                : null;
+              if (matched) {
+                setApplicableTax(matched.id);
+              } else if (data.defaultTaxRate > 0) {
+                setApplicableTax('SIMPLES_NACIONAL');
+              }
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  }, [isOpen, companyId, productToEdit]);
 
   // Keep locations in sync without resetting user typed values
   useEffect(() => {
@@ -1465,6 +1501,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white focus:border-emerald-500 focus:outline-hidden"
                     >
                       <option value="">Nenhum (Isento)</option>
+                      {companyTaxRates.map((tr) => (
+                        <option key={tr.id} value={tr.id}>
+                          {tr.name} ({tr.rate}%)
+                        </option>
+                      ))}
                       <option value="ICMS_PADRAO">ICMS Padrão</option>
                       <option value="ISS_SERVICOS">ISS (Serviços)</option>
                       <option value="SIMPLES_NACIONAL">Simples Nacional</option>

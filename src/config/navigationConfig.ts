@@ -946,24 +946,13 @@ export const OFFICIAL_NAVIGATION_CONFIG: SidebarSection[] = [
         children: [
           {
             id: 'sub-set-general',
-            label: 'Configurações',
-            icon: Sliders,
-            path: '/configuracoes',
-            permission: 'empresa.configurar',
-            scope: 'company',
-            description: 'Parâmetros gerais do tenant e preferências do sistema',
-            viewType: 'settings',
-          },
-          {
-            id: 'sub-set-companies',
-            label: 'Empresas',
+            label: 'Configuração da empresa',
             icon: Building2,
-            path: '/configuracoes/empresas',
+            path: '/configuracoes/empresa',
             permission: 'empresa.configurar',
             scope: 'company',
-            description: 'Dados cadastrais da pessoa jurídica e matriz/filiais',
-            viewType: 'list',
-            createPath: '/configuracoes/empresas/adicionar',
+            description: 'Parâmetros operacionais do negócio, moeda, regras contábeis e módulos',
+            viewType: 'settings',
           },
           {
             id: 'sub-set-locations',

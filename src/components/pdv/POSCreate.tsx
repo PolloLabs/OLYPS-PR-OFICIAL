@@ -111,6 +111,9 @@ export const POSCreate: React.FC<POSCreateProps> = ({
     shippingValue,
     setShippingValue,
     totals,
+    taxSettings,
+    isTaxTouched,
+    containedTaxTotal,
     isLoading,
     isProcessingPayment,
     addProductToCart,
@@ -635,6 +638,10 @@ export const POSCreate: React.FC<POSCreateProps> = ({
             cartShake={cartShake}
             lastAddedItemId={lastAddedItemId}
             isKiosk={isFullscreen}
+            taxCalculationType={taxSettings?.taxCalculationType}
+            defaultTaxRate={taxSettings?.defaultTaxRate}
+            isTaxTouched={isTaxTouched}
+            containedTaxTotal={containedTaxTotal}
           />
         </div>
 

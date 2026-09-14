@@ -1,0 +1,60 @@
+[
+  {
+    "id": "adj-seed-1-550e8400-e29b-41d4-a716-446655440001",
+    "companyId": "550e8400-e29b-41d4-a716-446655440001",
+    "referenceNumber": "AJE-0001",
+    "adjustmentDate": "2026-09-11",
+    "locationId": "loc-matriz",
+    "locationName": "Matriz - São Paulo",
+    "type": "normal",
+    "totalAmount": 450,
+    "totalRecovered": 0,
+    "reason": "Conferência periódica de estoque de rotina mensal",
+    "addedBy": "Admin Sistema",
+    "items": [
+      {
+        "id": "item-seed-1",
+        "productId": "prod-001",
+        "productName": "Teclado Mecânico RGB USB",
+        "sku": "PRD-100001",
+        "barcode": "7891234567801",
+        "currentStock": 25,
+        "quantity": 3,
+        "stockAfter": 28,
+        "unitCost": 150,
+        "subtotal": 450
+      }
+    ],
+    "createdAt": "2026-09-11T10:36:57.651Z",
+    "updatedAt": "2026-09-11T10:36:57.651Z"
+  },
+  {
+    "id": "adj-seed-2-550e8400-e29b-41d4-a716-446655440001",
+    "companyId": "550e8400-e29b-41d4-a716-446655440001",
+    "referenceNumber": "AJE-0002",
+    "adjustmentDate": "2026-09-13",
+    "locationId": "loc-matriz",
+    "locationName": "Matriz - São Paulo",
+    "type": "abnormal",
+    "totalAmount": 320,
+    "totalRecovered": 120,
+    "reason": "Avaria em transporte interno com reembolso parcial da seguradora",
+    "addedBy": "Admin Sistema",
+    "items": [
+      {
+        "id": "item-seed-2",
+        "productId": "prod-002",
+        "productName": "Mouse Óptico Sem Fio 2.4GHz",
+        "sku": "PRD-100002",
+        "barcode": "7891234567802",
+        "currentStock": 40,
+        "quantity": -4,
+        "stockAfter": 36,
+        "unitCost": 80,
+        "subtotal": 320
+      }
+    ],
+    "createdAt": "2026-09-13T10:36:57.651Z",
+    "updatedAt": "2026-09-13T10:36:57.651Z"
+  }
+]

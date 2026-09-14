@@ -31,6 +31,8 @@ import { POSService } from './src/server/services/posService.js';
 import { DraftService } from './src/server/services/draftService.js';
 import { ContactService } from './src/server/services/contactService.js';
 import { StockAdjustmentService } from './src/server/services/stockAdjustmentService.js';
+import { ProfitLossService } from './src/server/services/profitLossService.js';
+import { BusinessSettingsService } from './src/server/services/businessSettingsService.js';
 import type {
   SupabaseHealthStatus,
   ApiResponse,
@@ -4839,6 +4841,72 @@ async function startServer() {
       res.status(200).json({ success: true, data: updated });
     } catch (err: any) {
       res.status(400).json({ success: false, error: { message: err.message || 'Erro ao atualizar rascunho.' } });
+    }
+  });
+
+  // ============================================
+  // RELATÓRIOS (REPORTS) - SOMENTE LEITURA / AGREGAÇÃO
+  // ============================================
+  app.get('/api/companies/:companyId/reports/profit-loss', requireAuth, requireCompanyContext, requirePermission('relatorios.visualizar'), async (req, res) => {
+    const { companyId } = req.params;
+    const { startDate, endDate, locationId, comparePrevious } = req.query;
+
+    try {
+      const data = await ProfitLossService.getReport(companyId, {
+        startDate: startDate as string | undefined,
+        endDate: endDate as string | undefined,
+        locationId: locationId as string | undefined,
+        comparePrevious: comparePrevious === 'true',
+      });
+      res.status(200).json({ success: true, data });
+    } catch (err: any) {
+      console.error('[Reports] Error generating profit-loss report:', err);
+      res.status(500).json({
+        success: false,
+        error: { message: err.message || 'Erro ao gerar relatório de lucros e perdas.' },
+      });
+    }
+  });
+
+  // ============================================
+  // CONFIGURAÇÕES DE NEGÓCIO DA EMPRESA (03.4 / 13.1)
+  // ============================================
+  app.get('/api/companies/:companyId/business-settings', requireAuth, requireCompanyContext, async (req, res) => {
+    const { companyId } = req.params;
+    try {
+      const settings = await BusinessSettingsService.getSettings(companyId);
+      res.status(200).json({ success: true, data: settings });
+    } catch (err: any) {
+      res.status(500).json({
+        success: false,
+        error: { message: err.message || 'Erro ao carregar configurações da empresa.' },
+      });
+    }
+  });
+
+  app.post('/api/companies/:companyId/business-settings', requireAuth, requireCompanyContext, requirePermission('empresa.configurar'), async (req, res) => {
+    const { companyId } = req.params;
+    try {
+      const saved = await BusinessSettingsService.saveSettings(companyId, req.body);
+      res.status(200).json({ success: true, data: saved });
+    } catch (err: any) {
+      res.status(500).json({
+        success: false,
+        error: { message: err.message || 'Erro ao salvar configurações da empresa.' },
+      });
+    }
+  });
+
+  app.get('/api/companies/:companyId/settings', requireAuth, requireCompanyContext, async (req, res) => {
+    const { companyId } = req.params;
+    try {
+      const settings = await BusinessSettingsService.getSettings(companyId);
+      res.status(200).json({ success: true, data: settings });
+    } catch (err: any) {
+      res.status(500).json({
+        success: false,
+        error: { message: err.message || 'Erro ao carregar configurações da empresa.' },
+      });
     }
   });
 

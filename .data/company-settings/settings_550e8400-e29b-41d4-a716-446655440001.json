@@ -1,0 +1,19 @@
+{
+  "companyId": "550e8400-e29b-41d4-a716-446655440001",
+  "name": "Farmácia Modelo Ltda",
+  "startDate": "2026-01-15",
+  "defaultProfitPercent": 30,
+  "currency": "BRL",
+  "currencySymbolPlacement": "before",
+  "timezone": "America/Sao_Paulo",
+  "logoUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "logoName": "",
+  "fiscalYearStartMonth": 1,
+  "accountingMethod": "fifo",
+  "transactionEditDays": 30,
+  "dateFormat": "DD/MM/YYYY",
+  "timeFormat": "24",
+  "currencyPrecision": 2,
+  "quantityPrecision": 3,
+  "updatedAt": "2026-09-14T11:03:24.950Z"
+}

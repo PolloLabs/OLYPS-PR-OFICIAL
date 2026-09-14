@@ -41,6 +41,7 @@ import { POSList } from './components/pdv/POSList.js';
 import { POSCreate } from './components/pdv/POSCreate.js';
 import { StockAdjustmentsListView } from './components/stock/StockAdjustmentsListView.js';
 import { StockAdjustmentCreateView } from './components/stock/StockAdjustmentCreateView.js';
+import { ProfitLossReportView } from './components/reports/ProfitLossReportView.js';
 import { InvoiceSettings } from './components/settings/InvoiceSettings.js';
 import { PricingPlans } from './components/public/PricingPlans.js';
 import { ErrorBoundary } from './components/ui/ErrorBoundary.js';
@@ -250,6 +251,7 @@ export default function App() {
     if (resolvedPath === '/pos' || resolvedPath === '/vendas/pos-lista' || resolvedPath === '/pdv/lista' || resolvedPath === '/pos-lista') resolvedPath = '/vendas/pos-lista';
     if (resolvedPath === '/pos/create' || resolvedPath === '/vendas/pos' || resolvedPath === '/pdv' || resolvedPath === '/pdv/create') resolvedPath = '/vendas/pos';
     if (resolvedPath === '/vendas/rascunho' || resolvedPath.includes('status=draft')) resolvedPath = '/vendas/rascunho';
+    if (resolvedPath === '/configuracoes/empresas' || resolvedPath === '/configuracoes') resolvedPath = '/configuracoes/empresa';
     window.location.hash = resolvedPath === '/vendas/pos' ? '/pdv/create' : resolvedPath;
     for (const section of OFFICIAL_NAVIGATION_CONFIG) {
       for (const item of section.items) {
@@ -296,6 +298,10 @@ export default function App() {
       if (currentHash === '/pos' || currentHash === '/pdv/lista' || currentHash === '/pos-lista') currentHash = '/vendas/pos-lista';
       if (currentHash === '/pos/create' || currentHash === '/pdv' || currentHash === '/pdv/create') currentHash = '/vendas/pos';
       if (currentHash === '/vendas/rascunho' || currentHash.includes('status=draft')) currentHash = '/vendas/rascunho';
+      if (currentHash === '/configuracoes/empresas' || currentHash === '/configuracoes') {
+        window.location.hash = '#/configuracoes/empresa';
+        currentHash = '/configuracoes/empresa';
+      }
       if (currentHash) {
         for (const section of OFFICIAL_NAVIGATION_CONFIG) {
           for (const item of section.items) {
@@ -682,7 +688,12 @@ export default function App() {
     activeNavContext.item?.path === '/superadmin/comunicador';
 
   const isCompanySettingsView =
-    activeItemId === 'nav-settings' && activeSubItemId === 'sub-set-companies';
+    (activeItemId === 'nav-settings' && activeSubItemId === 'sub-set-general') ||
+    activeNavContext.subItem?.path === '/configuracoes/empresa' ||
+    activeNavContext.subItem?.path === '/configuracoes/empresas' ||
+    activeNavContext.subItem?.path === '/configuracoes' ||
+    activeNavContext.item?.path === '/configuracoes' ||
+    window.location.hash === '#/configuracoes/empresa';
 
   const isCommercialLocationsView =
     activeItemId === 'nav-settings' && activeSubItemId === 'sub-set-locations';
@@ -863,6 +874,12 @@ export default function App() {
     activeNavContext.item?.path === '/estoque/ajustes' ||
     activeNavContext.subItem?.path === '/stock-adjustments' ||
     activeNavContext.item?.path === '/stock-adjustments';
+
+  const isProfitLossReportView =
+    (activeItemId === 'nav-reports' && (activeSubItemId === 'sub-rep-profit-loss' || !activeSubItemId)) ||
+    activeNavContext.subItem?.path === '/relatorios/lucros-perdas' ||
+    activeNavContext.item?.path === '/relatorios/lucros-perdas' ||
+    window.location.hash === '#/relatorios/lucros-perdas';
 
   const [repairViewMode, setRepairViewMode] = useState<'list' | 'dashboard'>('list');
 
@@ -1321,6 +1338,12 @@ export default function App() {
               companyId={currentCompanyId}
               onNavigateToAdd={() => handleNavigateByPath('/estoque/ajustes/adicionar')}
               onShowNotification={showNotification}
+            />
+          ) : isProfitLossReportView ? (
+            /* Módulo 10 — Relatório de Lucros / Perdas (DRE Gerencial) */
+            <ProfitLossReportView
+              activeCompanyId={currentCompanyId}
+              activeCompanyName={activeCompanyName}
             />
           ) : (
             /* Operational Module Workspace View */

@@ -8,6 +8,7 @@ import {
   Minus,
   Edit2,
   HelpCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import type { POSItem } from '../../types/pdv.types.js';
 import type { SellCustomer } from '../../types/sell.types.js';
@@ -45,6 +46,10 @@ interface POSItemsTableProps {
   cartShake?: boolean;
   lastAddedItemId?: string | null;
   isKiosk?: boolean;
+  taxCalculationType?: 'inclusive' | 'exclusive';
+  defaultTaxRate?: number;
+  isTaxTouched?: boolean;
+  containedTaxTotal?: number;
 }
 
 export const POSItemsTable: React.FC<POSItemsTableProps> = ({
@@ -72,6 +77,10 @@ export const POSItemsTable: React.FC<POSItemsTableProps> = ({
   cartShake = false,
   lastAddedItemId = null,
   isKiosk = false,
+  taxCalculationType = 'exclusive',
+  defaultTaxRate = 10,
+  isTaxTouched = false,
+  containedTaxTotal = 0,
 }) => {
   return (
     <div
@@ -167,6 +176,21 @@ export const POSItemsTable: React.FC<POSItemsTableProps> = ({
       </div>
 
       {/* ÁREA DE ITENS DO CARRINHO */}
+      {/* Banner Informativo Anti-Cobrança Dupla / Imposto Incluso */}
+      {taxCalculationType === 'inclusive' && items.length > 0 && (
+        <div className="mx-2 mt-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded text-xs text-emerald-800 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 font-medium">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Imposto incluso no preço ({defaultTaxRate}%)</span>
+          </div>
+          {containedTaxTotal > 0 && (
+            <span className="text-[11px] font-mono font-semibold text-emerald-700">
+              Tributos embutidos: R$ {containedTaxTotal.toFixed(2)}
+            </span>
+          )}
+        </div>
+      )}
+
       <div
         id="pos-cart-items-scroll"
         className={`flex-1 overflow-y-auto overflow-x-hidden border-b border-slate-200 ${
@@ -267,6 +291,11 @@ export const POSItemsTable: React.FC<POSItemsTableProps> = ({
                         <div className="text-[11px] text-slate-500">
                           Unit: {item.imTaxPrice.toFixed(2)} R$
                         </div>
+                        {taxCalculationType === 'inclusive' && (
+                          <div className="text-[10px] text-emerald-700 font-mono">
+                            Imp. embutido: R$ {((item.imTaxPrice > item.unitPrice ? (item.imTaxPrice - item.unitPrice) : (item.imTaxPrice * (defaultTaxRate / (100 + defaultTaxRate)))) * item.quantity).toFixed(2)}
+                          </div>
+                        )}
                         <div className="text-base font-black text-slate-900">
                           {item.subtotal.toFixed(2)} R$
                         </div>
@@ -364,7 +393,12 @@ export const POSItemsTable: React.FC<POSItemsTableProps> = ({
 
                         {/* Preço Unitário */}
                         <td className="py-2 px-2 text-right font-medium text-slate-700">
-                          {item.imTaxPrice.toFixed(2)} R$
+                          <div>{item.imTaxPrice.toFixed(2)} R$</div>
+                          {taxCalculationType === 'inclusive' && (
+                            <div className="text-[10px] text-emerald-600 font-mono" title="Imposto já incluso no preço">
+                              {((item.imTaxPrice > item.unitPrice ? (item.imTaxPrice - item.unitPrice) : (item.imTaxPrice * (defaultTaxRate / (100 + defaultTaxRate))))).toFixed(2)} R$ imp.
+                            </div>
+                          )}
                         </td>
 
                         {/* Subtotal */}
@@ -449,7 +483,19 @@ export const POSItemsTable: React.FC<POSItemsTableProps> = ({
           </div>
 
           <div className="flex items-center justify-between bg-white p-1.5 rounded border border-slate-200">
-            <span className="font-medium text-slate-700">Imposto(+):</span>
+            <div className="flex items-center gap-1">
+              <span className="font-medium text-slate-700">Imposto(+):</span>
+              {taxCalculationType === 'inclusive' && !isTaxTouched && (
+                <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-semibold">
+                  Incluso
+                </span>
+              )}
+              {isTaxTouched && (
+                <span className="text-[9px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded font-semibold" title="Editado manualmente pelo operador">
+                  Manual
+                </span>
+              )}
+            </div>
             <input
               type="number"
               min="0"
@@ -532,6 +578,16 @@ export const POSItemsTable: React.FC<POSItemsTableProps> = ({
           <div className="flex items-center gap-1 bg-white p-1.5 rounded border border-slate-200">
             <span className="font-medium text-slate-700">Imposto(+)</span>
             <Info className="w-3 h-3 text-blue-500 shrink-0" />
+            {taxCalculationType === 'inclusive' && !isTaxTouched && (
+              <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-semibold">
+                Incluso
+              </span>
+            )}
+            {isTaxTouched && (
+              <span className="text-[9px] bg-amber-100 text-amber-800 px-1 py-0.5 rounded font-semibold" title="Editado manualmente pelo operador">
+                Manual
+              </span>
+            )}
             <span className="text-slate-400">:</span>
             <input
               type="number"

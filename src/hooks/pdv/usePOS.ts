@@ -62,6 +62,20 @@ export function usePOS(
   const [orderTaxValue, setOrderTaxValue] = useState<number>(0);
   const [shippingValue, setShippingValue] = useState<number>(0);
 
+  // Configuração Fiscal da Empresa e Proteção Anti-Cobrança Dupla
+  const [taxSettings, setTaxSettings] = useState<{
+    defaultTaxRate: number;
+    autoApplyTaxInPOS: boolean;
+    taxCalculationType: 'inclusive' | 'exclusive';
+    taxRegime: string;
+  }>({
+    defaultTaxRate: 10,
+    autoApplyTaxInPOS: true,
+    taxCalculationType: 'exclusive',
+    taxRegime: 'simples_nacional',
+  });
+  const [isTaxTouched, setIsTaxTouched] = useState<boolean>(false);
+
   // Modais de suporte
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState<boolean>(false);
   const [isRecentTransactionsOpen, setIsRecentTransactionsOpen] = useState<boolean>(false);
@@ -204,13 +218,35 @@ export function usePOS(
     }
   }, [companyId]);
 
+  // Carregar configurações fiscais da empresa
+  const loadTaxSettings = useCallback(async () => {
+    try {
+      const res = await api.get<{ success?: boolean; data?: any }>(
+        `/api/companies/${companyId}/business-settings`,
+        { companyId }
+      );
+      const data: any = (res as any)?.data || res;
+      if (data) {
+        setTaxSettings({
+          defaultTaxRate: typeof data.defaultTaxRate === 'number' ? data.defaultTaxRate : 10,
+          autoApplyTaxInPOS: data.autoApplyTaxInPOS !== undefined ? Boolean(data.autoApplyTaxInPOS) : true,
+          taxCalculationType: data.taxCalculationType === 'inclusive' ? 'inclusive' : 'exclusive',
+          taxRegime: data.taxRegime || 'simples_nacional',
+        });
+      }
+    } catch {
+      // Fallback padrão
+    }
+  }, [companyId]);
+
   useEffect(() => {
     loadProducts();
     loadCustomers();
     loadRecentTransactions();
     loadAlerts();
     loadCashRegister();
-  }, [loadProducts, loadCustomers, loadRecentTransactions, loadAlerts, loadCashRegister]);
+    loadTaxSettings();
+  }, [loadProducts, loadCustomers, loadRecentTransactions, loadAlerts, loadCashRegister, loadTaxSettings]);
 
   // Categorias únicas
   const categories = useMemo(() => {
@@ -322,7 +358,56 @@ export function usePOS(
     setCashbackValue(0);
     setOrderTaxValue(0);
     setShippingValue(0);
+    setIsTaxTouched(false);
   }, []);
+
+  // Modificação manual de imposto pelo operador no PDV
+  const handleSetOrderTaxValue = useCallback((value: number) => {
+    setIsTaxTouched(true);
+    setOrderTaxValue(Math.max(0, Number(value) || 0));
+  }, []);
+
+  // Auto-cálculo e sincronização fiscal com anti-cobrança dupla
+  useEffect(() => {
+    // 2. RESPEITO À EDIÇÃO MANUAL: se o usuário já editou manualmente nesta venda, não sobrescreve
+    if (isTaxTouched) return;
+    if (!taxSettings.autoApplyTaxInPOS) return;
+
+    if (items.length === 0) {
+      setOrderTaxValue(0);
+      return;
+    }
+
+    // 1. MODO INCLUSO vs ADICIONADO (anti-cobrança dupla):
+    if (taxSettings.taxCalculationType === 'exclusive') {
+      // ADICIONADO: calcula alíquota sobre o subtotal dos itens
+      const subtotal = items.reduce((acc, it) => acc + it.subtotal, 0);
+      const rate = taxSettings.defaultTaxRate ?? 10;
+      const computedTax = Number(((subtotal * rate) / 100).toFixed(2));
+      setOrderTaxValue(computedTax);
+    } else {
+      // INCLUSO: NÃO preencher orderTaxValue (permanece 0), pois imTaxPrice já contém o imposto
+      setOrderTaxValue(0);
+    }
+  }, [items, taxSettings.autoApplyTaxInPOS, taxSettings.taxCalculationType, taxSettings.defaultTaxRate, isTaxTouched]);
+
+  // Imposto contido / discriminado dos produtos (para visualização no modo incluso sem somar ao total)
+  const containedTaxTotal = useMemo(() => {
+    const rate = taxSettings.defaultTaxRate ?? 10;
+    return Number(
+      items
+        .reduce((acc, it) => {
+          const diff = Math.max(0, it.imTaxPrice - it.unitPrice);
+          if (diff > 0) {
+            return acc + diff * it.quantity;
+          }
+          const itemSubtotal = it.subtotal;
+          const base = itemSubtotal / (1 + rate / 100);
+          return acc + (itemSubtotal - base);
+        }, 0)
+        .toFixed(2)
+    );
+  }, [items, taxSettings.defaultTaxRate]);
 
   // Totais calculados
   const totals: POSTotals = useMemo(() => {
@@ -697,6 +782,7 @@ export function usePOS(
     setCashbackValue(0);
     setOrderTaxValue(0);
     setShippingValue(0);
+    setIsTaxTouched(false);
     setIsResetConfirmOpen(false);
     onNotification?.({
       type: 'info',
@@ -712,6 +798,7 @@ export function usePOS(
     setCashbackValue(0);
     setOrderTaxValue(0);
     setShippingValue(0);
+    setIsTaxTouched(false);
     setIsCancelConfirmOpen(false);
     onNotification?.({
       type: 'info',
@@ -746,7 +833,11 @@ export function usePOS(
     cashBack: cashbackValue,
     updateCashBack,
     orderTaxValue,
-    setOrderTaxValue,
+    setOrderTaxValue: handleSetOrderTaxValue,
+    taxSettings,
+    isTaxTouched,
+    setIsTaxTouched,
+    containedTaxTotal,
     shippingValue,
     setShippingValue,
     totals,
